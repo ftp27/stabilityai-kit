@@ -1,43 +1,60 @@
 import Foundation
 
-public struct StabilityClientConfig {
+public struct Configuration {
+    /// The API key used to authenticate requests.
+    public var apiKey: String
     /// Used to identify the source of requests, such as the client application or sub-organization. Optional, but recommended for organizational clarity.
-    var clientId: String?
+    public var clientId: String?
     /// Used to identify the version of the application or service making the requests. Optional, but recommended for organizational clarity.
-    var clientVersion: String?
+    public var clientVersion: String?
     /// Allows for requests to be scoped to an organization other than the user's default. If not provided, the user's default organization will be used.
-    var organization: String?
-    var apiKey: String
+    public var organization: String?
+    public var api: API?
     
-    var baseUrl = "https://api.stability.ai"
-    var pathPrefix = ""
+    public init(
+        apiKey: String,
+        clientId: String? = nil,
+        clientVersion: String? = nil,
+        organization: String? = nil,
+        api: API? = nil
+    ) {
+        self.apiKey = apiKey
+        self.clientId = clientId
+        self.clientVersion = clientVersion
+        self.organization = organization
+        self.api = api
+    }
 }
 
-public class StabilityClient {
+public class Client {
     
-    public let config: StabilityClientConfig
+    public var configuration: Configuration
     
     private var session: URLSession = .shared
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
     
-    public init(config: StabilityClientConfig) {
-        self.config = config
+    public init(configuration: Configuration) {
+        self.configuration = configuration
     }
     
     func prepareRequst(path: String, method: String, timeout: TimeInterval = 60) async throws -> URLRequest {
-        let urlString = [config.baseUrl, config.pathPrefix, path].joined(separator: "/")
-        var request = URLRequest(url: URL(string: urlString)!, timeoutInterval: timeout)
-        request.addValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
-        config.organization.map { request.addValue($0, forHTTPHeaderField: "Organization") }
-        config.clientId.map { request.addValue($0, forHTTPHeaderField: "Stability-Client-ID") }
-        config.clientVersion.map { request.addValue($0, forHTTPHeaderField: "Stability-Client-Version") }
+        var components = URLComponents()
+        components.scheme = configuration.api?.scheme.value ?? API.Scheme.https.value
+        components.host = configuration.api?.host ?? "api.stability.ai"
+        components.path = [configuration.api?.path, path].compactMap { $0 }.joined()
+        guard let url = components.url else { throw StabilityError.invalidURLGenerated }
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.addValue("Bearer \(configuration.apiKey)", forHTTPHeaderField: "Authorization")
+        configuration.organization.map { request.addValue($0, forHTTPHeaderField: "Organization") }
+        configuration.clientId.map { request.addValue($0, forHTTPHeaderField: "Stability-Client-ID") }
+        configuration.clientVersion.map { request.addValue($0, forHTTPHeaderField: "Stability-Client-Version") }
         request.httpMethod = method
         return request
     }
     
     public func getEngines() async throws -> [Engine] {
-        let request = try await prepareRequst(path: "v1/engines/list", method: "GET")
+        let request = try await prepareRequst(path: "/v1/engines/list", method: "GET")
         let (data, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw StabilityError.invalidResponse }
         guard response.statusCode == 200 else {
@@ -47,7 +64,7 @@ public class StabilityClient {
     }
     
     public func getImageFromText(_ request: TextToImageRequest, engine: String) async throws -> [ImageResponse] {
-        var urlRequest = try await prepareRequst(path: "v1/generation/\(engine)/text-to-image",
+        var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/text-to-image",
                                                  method: "POST",
                                                  timeout: .infinity)
         urlRequest.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -58,15 +75,14 @@ public class StabilityClient {
         guard response.statusCode == 200 else {
             throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
         }
-        return try decoder.decode([ImageResponse].self, from: data)
+        return try decoder.decode(StabilityResponse.self, from: data).artifacts
     }
     
     public func getImageFromImage(_ request: ImageToImageRequest, engine: String) async throws -> [ImageResponse] {
-        var urlRequest = try await prepareRequst(path: "v1/generation/\(engine)/text-to-image",
+        var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/text-to-image",
                                                  method: "POST",
                                                  timeout: .infinity)
         urlRequest.addValue("application/json", forHTTPHeaderField: "Accept")
-        urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
         let boundary = "Boundary-\(UUID().uuidString)"
         let body = try request.createMultipartBody(boundary: boundary)
         urlRequest.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -76,6 +92,6 @@ public class StabilityClient {
         guard response.statusCode == 200 else {
             throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
         }
-        return try decoder.decode([ImageResponse].self, from: data)
+        return try decoder.decode(StabilityResponse.self, from: data).artifacts
     }
 }

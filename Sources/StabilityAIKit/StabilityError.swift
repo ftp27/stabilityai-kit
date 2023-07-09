@@ -7,4 +7,6 @@ public enum StabilityError: Error {
     case invalidResponse
     /// The response status code is not 200.
     case errorResponse(String)
+    /// The URL could not be generated.
+    case invalidURLGenerated
 }
