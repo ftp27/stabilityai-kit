@@ -1,5 +1,6 @@
 import Foundation
 
+/// Configuration of the Stability AI Client
 public struct Configuration {
     /// The API key used to authenticate requests.
     public var apiKey: String
@@ -9,6 +10,7 @@ public struct Configuration {
     public var clientVersion: String?
     /// Allows for requests to be scoped to an organization other than the user's default. If not provided, the user's default organization will be used.
     public var organization: String?
+    /// Server configuration
     public var api: API?
     
     public init(
@@ -53,6 +55,8 @@ public class Client {
         return request
     }
     
+    /// Get a list of available engines
+    /// - Returns: List of engines
     public func getEngines() async throws -> [Engine] {
         let request = try await prepareRequst(path: "/v1/engines/list", method: "GET")
         let (data, response) = try await session.data(for: request)
@@ -63,6 +67,11 @@ public class Client {
         return try decoder.decode([Engine].self, from: data)
     }
     
+    /// Makes text to image request
+    /// - Parameters:
+    ///   - request: Text to image properties
+    ///   - engine: Engine id
+    /// - Returns: Array of results
     public func getImageFromText(_ request: TextToImageRequest, engine: String) async throws -> [ImageResponse] {
         var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/text-to-image",
                                                  method: "POST",
@@ -78,6 +87,11 @@ public class Client {
         return try decoder.decode(StabilityResponse.self, from: data).artifacts
     }
     
+    /// Makes image to image request
+    /// - Parameters:
+    ///   - request: Image to image properties
+    ///   - engine: Engine id
+    /// - Returns: Array of results
     public func getImageFromImage(_ request: ImageToImageRequest, engine: String) async throws -> [ImageResponse] {
         var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/text-to-image",
                                                  method: "POST",

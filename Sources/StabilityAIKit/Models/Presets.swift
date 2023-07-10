@@ -1,5 +1,6 @@
 import Foundation
 
+/// CLIP Guidance is a technique that uses the CLIP neural network to guide the generation of images to be more in-line with your included prompt, which often results in improved coherency.
 public enum ClipGuidancePreset: String, Codable {
     case `none` = "NONE"
     case fastBlue = "FAST_BLUE"
@@ -10,6 +11,7 @@ public enum ClipGuidancePreset: String, Codable {
     case slowest = "SLOWEST"
 }
 
+/// Style presets are a way to apply pre-defined styles to your images.
 public enum StylePreset: String, Codable {
     case model3D = "3d-model"
     case analogFilm = "analog-film"

@@ -1,5 +1,6 @@
 import Foundation
 
+/// The Sampler enum is responsible for determining the calculation process of an image within latent diffusion models. It acts as an intermediary between the input prompt and the resulting image, influencing the subsequent steps without exposing the underlying mathematical operations.
 public enum Sampler: String, Codable {
     /// Denoising Diffusion Implicit Model
     case ddim = "DDIM"

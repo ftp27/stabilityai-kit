@@ -85,6 +85,7 @@ public struct TextToImageRequest: Codable {
     }
 }
 
+/// Text prompt to use for generation.
 public struct TextPrompt: Codable {
     var text: String
     var weight: Float?

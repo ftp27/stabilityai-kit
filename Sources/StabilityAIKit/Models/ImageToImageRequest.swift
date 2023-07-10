@@ -10,6 +10,7 @@ public protocol ImageToImageRequest {
     /// How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt).
     /// Default: 7. Range: [ 0 .. 35 ]
     var cfg_scale: Int? { get set }
+    /// CLIP Guidance is a technique that uses the CLIP neural network to guide the generation of images to be more in-line with your included prompt, which often results in improved coherency.
     /// Default: `none`
     var clip_guidance_preset: ClipGuidancePreset? { get set }
     /// Which sampler to use for the diffusion process. If this value is omitted we'll automatically select an appropriate sampler for you.
@@ -25,11 +26,17 @@ public protocol ImageToImageRequest {
     var steps: Int? { get set  }
     /// Pass in a style preset to guide the image model towards a particular style. This list of style presets is subject to change.
     var style_preset: StylePreset? { get set }
-    
+    /// Converts the request to a multipart body.
     func createMultipartBody(boundary: String) throws -> String
 }
 
 public extension ImageToImageRequest {
+    /// Create image to image request with image strength.
+    /// - Parameters:
+    ///   - prompts: An array of text prompts to use for generation.
+    ///   - initImage: Image used to initialize the diffusion process, in lieu of random noise.
+    ///   - imageStrength: How much influence the `init_image` has on the diffusion process. Values close to `1` will yield images very similar to the `init_image` while values close to `0` will yield images wildly different than the `init_image`.
+    /// - Returns: Image to Image request
     static func strength(
         prompts: [TextPrompt],
         initImage: Data,
@@ -42,11 +49,18 @@ public extension ImageToImageRequest {
         )
     }
     
+    ///  Create image to image request with step schedule.
+    /// - Parameters:
+    ///   - prompts: An array of text prompts to use for generation.
+    ///   - initImage: Image used to initialize the diffusion process, in lieu of random noise.
+    ///   - stepScheduleStart: Skips a proportion of the start of the diffusion steps, allowing the `init_image` to influence the final generated image.
+    ///   - stepScheduleEnd: Skips a proportion of the end of the diffusion steps, allowing the `init_image` to influence the final generated image. Lower values will result in more influence from the `init_image`, while higher values will result in more influence from the diffusion steps.
+    /// - Returns: Image to Image request
     static func stepSchedule(
         prompts: [TextPrompt],
         initImage: Data,
-        stepScheduleStart: Int,
-        stepScheduleEnd: Int?
+        stepScheduleStart: Float,
+        stepScheduleEnd: Float?
     ) -> ImageToImageRequest {
         ImageToImageStepScheduleRequest(
             textPrompts: prompts,
@@ -56,36 +70,43 @@ public extension ImageToImageRequest {
         )
     }
     
-    mutating func setCfgState(_ cfgState: Int) -> ImageToImageRequest {
-        self.cfg_scale = cfgState
+    /// Set CFG Scale (how strictly the diffusion process adheres to the prompt text).
+    mutating func setCfgScale(_ cfgScale: Int) -> ImageToImageRequest {
+        self.cfg_scale = cfgScale
         return self
     }
     
+    /// Set CLIP Guidance preset. CLIP Guidance is a technique that uses the CLIP neural network to guide the generation of images to be more in-line with your included prompt, which often results in improved coherency.
     mutating func setClipGuidancePreset(_ clipGuidancePreset: ClipGuidancePreset) -> ImageToImageRequest {
         self.clip_guidance_preset = clipGuidancePreset
         return self
     }
     
+    /// Which sampler to use for the diffusion process. If this value is omitted we'll automatically select an appropriate sampler for you.
     mutating func setSampler(_ sampler: Sampler) -> ImageToImageRequest {
         self.sampler = sampler
         return self
     }
     
+    /// Number of images to generate.
     mutating func setSamples(_ samples: Int) -> ImageToImageRequest {
         self.samples = samples
         return self
     }
     
+    /// Random noise seed (omit this option or use 0 for a random seed).
     mutating func setSeed(_ seed: Int) -> ImageToImageRequest {
         self.seed = seed
         return self
     }
     
+    /// Number of diffusion steps to run.
     mutating func setSteps(_ steps: Int) -> ImageToImageRequest {
         self.steps = steps
         return self
     }
     
+    /// Pass in a style preset to guide the image model towards a particular style. This list of style presets is subject to change.
     mutating func setStylePreset(_ stylePreset: StylePreset) -> ImageToImageRequest {
         self.style_preset = stylePreset
         return self
@@ -138,10 +159,10 @@ public struct ImageToImageStepScheduleRequest: ImageToImageRequest {
     public var init_image_mode: String = "STEP_SCHEDULE"
     /// Skips a proportion of the start of the diffusion steps, allowing the `init_image` to influence the final generated image. Lower values will result in more influence from the `init_image`, while higher values will result in more influence from the diffusion steps. (e.g. a value of `0` would simply return you the `init_image`, where a value of `1` would return you a completely different image.).
     /// Default: 0.65. Range: [ 0 .. 1 ]
-    public var step_schedule_start: Int?
+    public var step_schedule_start: Float?
     /// Skips a proportion of the end of the diffusion steps, allowing the `init_image` to influence the final generated image. Lower values will result in more influence from the `init_image`, while higher values will result in more influence from the diffusion steps.
     /// Range: [ 0 .. 1 ]
-    public var step_schedule_end: Int?
+    public var step_schedule_end: Float?
     public var cfg_scale: Int?
     public var clip_guidance_preset: ClipGuidancePreset?
     public var sampler: Sampler?
@@ -152,8 +173,8 @@ public struct ImageToImageStepScheduleRequest: ImageToImageRequest {
     
     public init(textPrompts: [TextPrompt],
                   initImage: Data,
-                  stepScheduleStart: Int? = nil,
-                  stepScheduleEnd: Int? = nil,
+                  stepScheduleStart: Float? = nil,
+                  stepScheduleEnd: Float? = nil,
                   cfgScale: Int? = nil,
                   clipGuidancePreset: ClipGuidancePreset? = nil,
                   sampler: Sampler? = nil,

@@ -1,8 +1,12 @@
 import Foundation
 
+/// Server configuration
 public struct API {
+    /// The scheme used to make requests
     public let scheme: Scheme
+    /// The host used to make requests
     public let host: String
+    /// The path prefix will be added before the endpoint path.
     public let path: String?
     
     public init(
@@ -24,12 +28,9 @@ extension API {
         
         var value: String {
             switch self {
-            case .http:
-                return "http"
-            case .https:
-                return "https"
-            case .custom(let scheme):
-                return scheme
+            case .http: return "http"
+            case .https: return "https"
+            case .custom(let scheme): return scheme
             }
         }
     }
