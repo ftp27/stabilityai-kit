@@ -13,6 +13,9 @@ let package = Package(
             name: "StabilityAIKit",
             targets: ["StabilityAIKit"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.1.0"),
+    ],
     targets: [
         .target(
             name: "StabilityAIKit"),
