@@ -16,6 +16,12 @@ public extension ImageResponse {
     public var data: Data? { Data(base64Encoded: base64) }
 }
 
+public struct StabilityAPIError: Codable {
+    var id: String
+    var message: String
+    var name: String
+}
+
 public enum FinishReason: String, Codable {
     case contentFiltered = "CONTENT_FILTERED"
     case error = "ERROR"

@@ -55,15 +55,22 @@ public class Client {
         return request
     }
     
+    func validateResponse(data: Data, response: URLResponse) throws {
+        guard let response = response as? HTTPURLResponse else { throw StabilityError.invalidResponse }
+        if response.statusCode == 200 { return }
+        if let error = try? decoder.decode(StabilityAPIError.self, from: data) {
+            throw StabilityError.errorResponse(error.message)
+        } else {
+            throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
+        }
+    }
+    
     /// Get a list of available engines
     /// - Returns: List of engines
     public func getEngines() async throws -> [Engine] {
         let request = try await prepareRequst(path: "/v1/engines/list", method: "GET")
         let (data, response) = try await session.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw StabilityError.invalidResponse }
-        guard response.statusCode == 200 else {
-            throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
-        }
+        try validateResponse(data: data, response: response)
         return try decoder.decode([Engine].self, from: data)
     }
     
@@ -80,10 +87,7 @@ public class Client {
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.httpBody = try encoder.encode(request)
         let (data, response) = try await session.data(for: urlRequest)
-        guard let response = response as? HTTPURLResponse else { throw StabilityError.invalidResponse }
-        guard response.statusCode == 200 else {
-            throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
-        }
+        try validateResponse(data: data, response: response)
         return try decoder.decode(StabilityResponse.self, from: data).artifacts
     }
     
@@ -93,19 +97,15 @@ public class Client {
     ///   - engine: Engine id
     /// - Returns: Array of results
     public func getImageFromImage(_ request: ImageToImageRequest, engine: String) async throws -> [ImageResponse] {
-        var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/text-to-image",
+        var urlRequest = try await prepareRequst(path: "/v1/generation/\(engine)/image-to-image",
                                                  method: "POST",
                                                  timeout: .infinity)
         urlRequest.addValue("application/json", forHTTPHeaderField: "Accept")
         let boundary = "Boundary-\(UUID().uuidString)"
-        let body = try request.createMultipartBody(boundary: boundary)
         urlRequest.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        urlRequest.httpBody = body.data(using: .utf8)
+        urlRequest.httpBody = try request.createMultipartBody(boundary: boundary)
         let (data, response) = try await session.data(for: urlRequest)
-        guard let response = response as? HTTPURLResponse else { throw StabilityError.invalidResponse }
-        guard response.statusCode == 200 else {
-            throw StabilityError.errorResponse("Invalid response status code: \(response.statusCode)")
-        }
+        try validateResponse(data: data, response: response)
         return try decoder.decode(StabilityResponse.self, from: data).artifacts
     }
 }
