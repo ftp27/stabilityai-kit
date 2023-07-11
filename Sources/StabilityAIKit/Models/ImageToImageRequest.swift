@@ -109,42 +109,49 @@ public extension ImageToImageRequest {
     }
     
     /// Set CFG Scale (how strictly the diffusion process adheres to the prompt text).
+    @discardableResult
     func setCfgScale(_ cfgScale: Int) -> ImageToImageRequest {
         self.cfg_scale = cfgScale
         return self
     }
     
     /// Set CLIP Guidance preset. CLIP Guidance is a technique that uses the CLIP neural network to guide the generation of images to be more in-line with your included prompt, which often results in improved coherency.
+    @discardableResult
     func setClipGuidancePreset(_ clipGuidancePreset: ClipGuidancePreset) -> ImageToImageRequest {
         self.clip_guidance_preset = clipGuidancePreset
         return self
     }
     
     /// Which sampler to use for the diffusion process. If this value is omitted we'll automatically select an appropriate sampler for you.
+    @discardableResult
     func setSampler(_ sampler: Sampler) -> ImageToImageRequest {
         self.sampler = sampler
         return self
     }
     
     /// Number of images to generate.
+    @discardableResult
     func setSamples(_ samples: Int) -> ImageToImageRequest {
         self.samples = samples
         return self
     }
     
     /// Random noise seed (omit this option or use 0 for a random seed).
+    @discardableResult
     func setSeed(_ seed: Int) -> ImageToImageRequest {
         self.seed = seed
         return self
     }
     
     /// Number of diffusion steps to run.
+    @discardableResult
     func setSteps(_ steps: Int) -> ImageToImageRequest {
         self.steps = steps
         return self
     }
     
     /// Pass in a style preset to guide the image model towards a particular style. This list of style presets is subject to change.
+    @discardableResult
     func setStylePreset(_ stylePreset: StylePreset?) -> ImageToImageRequest {
         self.style_preset = stylePreset
         return self
@@ -156,17 +163,17 @@ extension ImageToImageRequest {
         var data = MultipartFormData(boundary: boundary)
         data.encode(prompts: text_prompts, name: "text_prompts")
         data.encode(data: init_image, name: "init_image", fileName: "init_image.png", mimeType: "image/png")
-//        data.encode(string: init_image_mode, name: "init_image_mode")
+        data.encode(string: init_image_mode, name: "init_image_mode")
         image_strength.map { data.encode(string: "\($0)", name: "image_strength") }
-//        step_schedule_start.map { data.encode(string: "\($0)", name: "step_schedule_start") }
-//        step_schedule_end.map { data.encode(string: "\($0)", name: "step_schedule_end") }
-//        cfg_scale.map { data.encode(string: "\($0)", name: "cfg_scale") }
-//        clip_guidance_preset.map { data.encode(string: "\($0.rawValue)", name: "clip_guidance_preset") }
-//        sampler.map { data.encode(string: "\($0.rawValue)", name: "sampler") }
-//        samples.map { data.encode(string: "\($0)", name: "samples") }
-//        seed.map { data.encode(string: "\($0)", name: "seed") }
-//        steps.map { data.encode(string: "\($0)", name: "steps") }
-//        style_preset.map { data.encode(string: "\($0.rawValue)", name: "style_preset") }
+        step_schedule_start.map { data.encode(string: "\($0)", name: "step_schedule_start") }
+        step_schedule_end.map { data.encode(string: "\($0)", name: "step_schedule_end") }
+        cfg_scale.map { data.encode(string: "\($0)", name: "cfg_scale") }
+        clip_guidance_preset.map { data.encode(string: "\($0.rawValue)", name: "clip_guidance_preset") }
+        sampler.map { data.encode(string: "\($0.rawValue)", name: "sampler") }
+        samples.map { data.encode(string: "\($0)", name: "samples") }
+        seed.map { data.encode(string: "\($0)", name: "seed") }
+        steps.map { data.encode(string: "\($0)", name: "steps") }
+        style_preset.map { data.encode(string: "\($0.rawValue)", name: "style_preset") }
         return data.getBody()
     }
 }
