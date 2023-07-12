@@ -87,9 +87,16 @@ public struct TextToImageRequest: Codable {
 
 /// Text prompt to use for generation.
 public struct TextPrompt: Codable {
+    /// The text content of the prompt.
     public var text: String
+    
+    /// The weight assigned to the prompt. Can be nil.
     public var weight: Float?
     
+    /// Initializes a new instance of TextPrompt.
+    /// - Parameters:
+    ///   - text: The text content of the prompt.
+    ///   - weight: The weight assigned to the prompt. Defaults to nil.
     public init(text: String, weight: Float? = nil) {
         self.text = text
         self.weight = weight

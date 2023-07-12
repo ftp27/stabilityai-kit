@@ -65,6 +65,24 @@ public class Client {
         }
     }
     
+    /// Get information about the account associated with the provided API key
+    /// - Returns: Account information
+    public func getAccount() async throws -> Account {
+        var urlRequest = try await prepareRequst(path: "/v1/user/account", method: "GET")
+        let (data, response) = try await session.data(for: urlRequest)
+        try validateResponse(data: data, response: response)
+        return try decoder.decode(Account.self, from: data)
+    }
+    
+    /// Get the credit balance of the account/organization associated with the API key
+    /// - Returns: Balance information
+    public func getBalance() async throws -> Balance {
+        var urlRequest = try await prepareRequst(path: "/v1/user/balance", method: "GET")
+        let (data, response) = try await session.data(for: urlRequest)
+        try validateResponse(data: data, response: response)
+        return try decoder.decode(Balance.self, from: data)
+    }
+    
     /// Get a list of available engines
     /// - Returns: List of engines
     public func getEngines() async throws -> [Engine] {
