@@ -2,6 +2,16 @@
 
 Stability.ai KIT implementation for Swift enables seamless integration of stability analysis and prediction capabilities into your Swift-based applications.
 
+## Available Features
+
+- [x] [Get account information](https://platform.stability.ai/rest-api#tag/v1user/operation/userAccount)
+- [x] [Get balance information](https://platform.stability.ai/rest-api#tag/v1user/operation/userBalance)
+- [x] [Get engines](https://platform.stability.ai/rest-api#tag/v1engines/operation/listEngines)
+- [x] [Generate a new image from a text prompt](https://platform.stability.ai/rest-api#tag/v1generation/operation/textToImage)
+- [x] [Modify an image based on a text prompt](https://platform.stability.ai/rest-api#tag/v1generation/operation/imageToImage)
+- [ ] [Create a higher resolution version of an input image](https://platform.stability.ai/rest-api#tag/v1generation/operation/upscaleImage)
+- [ ] [Selectively modify portions of an image using a mask](https://platform.stability.ai/rest-api#tag/v1generation/operation/masking)
+
 ## Installation
 
 You can install the Stability.ai KIT package using Swift Package Manager. Add the following dependency to your `Package.swift` file:
