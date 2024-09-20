@@ -1,6 +1,6 @@
 # Stability.ai KIT
 
-Stability.ai KIT implementation for Swift enables seamless integration of stability analysis and prediction capabilities into your Swift-based applications.
+Stability.ai KIT implementation for Swift enables seamless integration of Stability.ai API into your Swift-based applications.
 
 ## Available Features
 
